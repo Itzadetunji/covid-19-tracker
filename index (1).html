@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>COVID-19 Tracker || By Adetunji Adeyinka</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.core.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+	<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script> -->
+</head>
+
+<body>
+	<div class="main">
+		<div id="header">
+			<h3>COVID-19 Tracker || By Adetunji Adeyinka || Website: <a href="http://adeyinka.000webhostapp.com" class="link">adeyinka.000webhostapp.com</a></h3>
+		</div>
+
+		<div id="content">
+			<div id="search">
+				<select name="country" id="country">
+					<option value="#">--Select Country--</option>
+				</select>
+			</div>
+
+			<div id="confirmed" class="row">	
+				<h3>Confirmed</h3>
+				<span id="confirmedCount"></span>
+			</div>
+
+			<div id="recovered" class="row">
+				<h3>Recovered</h3>	
+				<span id="recoveredCount"></span>
+			</div>	
+
+			<div id="death" class="row">
+				<h3>Death</h3>
+				<span id="deathCount"></span>
+			</div>
+			<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+				<br>
+			<div class="chart-container">
+				<canvas id="country-barchart"></canvas>
+				<br>
+				<br>
+				<br>
+				<br>
+				<canvas id="country-piechart"></canvas>
+			</div>
+		</div>
+
+	</div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+	var jsonData = [];
+	$(document).ready(function(){
+		$.ajax({
+			type: 'GET',
+			url: 'https://corona-api.com/countries',
+			datatype: 'jsonp',
+			success: function (result) {
+				jsonData = result;
+				_.forEach(result.data, function(elem) {
+					$('#country').append('<option value=' + elem.code + '>' + elem.name + '</option>');
+				});
+			},
+			error: function (error){
+				console.log(error);
+			}
+		});
+
+		setTimeout(() => {
+			$('#country').prop("selectedIndex", 1).trigger('change');
+		}, 100);
+	});
+	$('#country').change(function () {
+	$("#country-barchart").remove();
+	$("#country-piechart").remove();
+	$(".chart-container").append('<canvas id="country-barchart"></canvas>');
+	$(".chart-container").append('<canvas id="country-piechart"></canvas>');
+	var ctx1 = $('#country-barchart');
+	var ctx2 = $('#country-piechart');
+	ctx1.height = 450;
+	var selectedCountryCode = $("#country").val();
+	var selectedCountryName = $("#country :selected").text();
+	var selectedCountryData = _.filter(jsonData.data, {'code' : selectedCountryCode});
+	var	confirmedData = selectedCountryData[0].latest_data.confirmed;
+	var recoveredData = selectedCountryData[0].latest_data.recovered;
+	var deathData = selectedCountryData[0].latest_data.deaths;
+
+	$("#confirmedCount").text(confirmedData);
+	$("#recoveredCount").text(recoveredData);
+	$("#deathCount").text(deathData);
+
+	generateBarChart(ctx1, ["Confirmed", "Recovered", "Deaths"], [confirmedData, recoveredData, deathData], "COVID-19 cases in " + selectedCountryName);
+	generatePieChart(ctx2, ["Confirmed", "Recovered", "Deaths"], [confirmedData, recoveredData, deathData], "COVID-19 cases in " + selectedCountryName);
+	$('html,body').animate({ scrollTop: $("#country-barchart").offset().top }, 'slow');
+	});
+	function generateBarChart(canvas, label, data, title){
+		var myChart = new Chart(canvas, {
+		    type: 'bar',
+		    data: {
+		        labels: label,
+		        datasets: [{
+		            data: data,
+		            backgroundColor: poolColors(10)
+		        }]
+		    },
+		    options: {
+		    	responsive: true,
+		    	maintainAspectRatio: false,
+		    	legend: { display: true },
+		    	title: {
+		    		display: true,
+		    		text: title,
+		    	},
+		        scales: {
+		            yAxes: [{
+		                maxBarThickness: 100,
+		            }],
+		        },
+		        legend: {
+		        	display:false,
+		        }
+		    }
+		});
+	}
+
+	function generatePieChart(canvas, label, data, title){
+		var myChart = new Chart(canvas, {
+		    type: 'pie',
+		    data: {
+		        labels: label,
+		        datasets: [{
+		            label: '# of Cases',
+		            data: data,
+		            backgroundColor: poolColors(10)
+		        }]
+		    },
+		    options: {
+		        legend: {
+		        	display: false,
+		        },
+		        title: {
+		        	display: true,
+		        	text: title
+		        }
+		    }
+		});
+	}
+
+	function poolColors(a){
+		var pool = [];
+		for (i = 0; i < a; i++) {
+			pool.push(dynamicColors());
+		}
+		return pool;
+	}
+
+	function dynamicColors() {
+		var r = Math.floor(Math.random() * 255);
+		var g = Math.floor(Math.random() * 255);
+		var b = Math.floor(Math.random() * 255);
+		return "rgb(" + r + "," + g + "," + b + ")";
+	}
+	
+
+</script>
